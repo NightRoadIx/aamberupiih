@@ -2,23 +2,28 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as mp
-from datetime import datetime
+import datetime as dt
+
+# CARGAR LA FECHA ACTUAL
+fechaActual = dt.datetime.now()
+# Formatear el objeto fecha actual para obtener la
+# hora actual
+horaActual = fechaActual.strftime('%H:%M')
+horaCompar = dt.datetime.strptime(horaActual, '%H:%M').time()
+# Día actual
+diaSemActual = fechaActual.strftime('%w')
 
 #%%
-# Cargar la información del horario del archivo de la base de datos
+# Cargar la información de horarios del archivo de la base de datos
 # Corresponde a una tabla
 # Esto se realiza mediante la librería Pandas que trabaja perfectamente
 # con archivos .csv
 # En esata tabla, dado que hay valores vacíos (NaN) se eliminan, pues es
 # complicado trabajar con ellos
-horario = pd.read_csv('mecaHorario.csv')
+horario = pd.read_csv('horarios24_2.csv', encoding='latin-1')
 # Se puede rellenar con cualquier valor para que sea sencillo después trabajar
 horario = horario.fillna('0')
-# Cargar la información de los grupos
-grupos = pd.read_csv('mecaGrupos.csv')
 
-# Mostrar la tabla con los datos de horario por ejemplo
-print(horario)
 
 #%%
 # Obtener la lista de profesores ordenados alfabéticamente
@@ -36,37 +41,34 @@ print(profesores)
 # Se usa de la tabla 'horario' se busca donde el valor de la columna 'Profesor' sea igual
 # a algún valor
 seleccion = horario[horario['Profesor'] == 'HERNANDEZ QUINTANAR LUIS FELIPE DE JESUS']
-
 # Mostrar el horario del profesor seleccionado
 print(seleccion.to_string())
+
 # TODO: Con esto es posible revisar ya una hora específica para saber ubicación
 
-# La hora actual del sistema se puede obtener mediante:
-# Lista con los días de la semana tal como vienen en la tabla
-setimana = horario.columns[5:11].tolist()
-# Obtiene una fotografía de la fecha y hora
-now = datetime.now()
-# Obtener la fecha y hora en una cadena con formato
-horaStr = now.strftime("%H:%M")
-diaSem = setimana[int(now.strftime("%w"))]
-print(f"Hoy es {diaSem} a las {horaStr}")
-# TODO: A partir de eso se compara con el intervalo que viene en las columnas de horario
-
-#%%
-# Obtener la lista de los grupos que tenga el profesor
-grup = seleccion['Grupo'].unique().tolist()
-# Obtener las materias que da el profesor
-mater = seleccion['Asignatura'].unique().tolist()
-
-#%%
-# Ahora con los grupos determinar cuántos alumnos tiene en total
-totalAlumnos = 0
-for gr, ma in zip(grup, mater):
-    # Obtener los datos de la materia
-    lab = grupos[ grupos['Nombre de la Materia'] == ma ]
-    for i in lab.index:
-        totalAlumnos += lab['Inscritos'][i]
-
-print("Grupos: ", grup)
-print("Materias: ", mater)
-print("Total de alumnos: ", totalAlumnos)
+# Revisar que salones están vacíos en la hora actual
+# Generar una lista con los valores de los días de la semana en columnas
+colSem = horario.columns[5:10].tolist()
+#print( horario[colSem[int(diaSemActual)]].tolist() )
+# Recorrer todos los horarios
+vac = []
+for j, dd in enumerate(horario[colSem[int(diaSemActual)]]):
+    # Si es diferente de cero
+    if dd != '0':
+        try:
+            # Separar el tiempo en horas y minutos inicial y final de la clase
+            ini, fin = dd.split('-')
+            ini = dt.datetime.strptime(ini, '%H:%M').time()
+            fin = dt.datetime.strptime(fin, '%H:%M').time()
+            # Cuando el salón está ocupado
+            if ini <= horaCompar <= fin:
+                print('', end="")
+            else:
+                vac.append(j)
+        except:
+            print('', end="")
+    # en otro caso
+    else:
+        vac.append(j)
+# Mostrar losalones vacíos en esa hora
+print( (horario.loc[vac, 'Salón'].unique().tolist()) )
