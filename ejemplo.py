@@ -11,14 +11,15 @@ fechaActual = dt.datetime.now()
 horaActual = fechaActual.strftime('%H:%M')
 horaCompar = dt.datetime.strptime(horaActual, '%H:%M').time()
 # Día actual
-diaSemActual = fechaActual.strftime('%w')
+diaSemActual = int(fechaActual.strftime('%w'))
+diaSemActual -= 1       # Quitar 1
 
 #%%
 # Cargar la información de horarios del archivo de la base de datos
 # Corresponde a una tabla
 # Esto se realiza mediante la librería Pandas que trabaja perfectamente
 # con archivos .csv
-# En esata tabla, dado que hay valores vacíos (NaN) se eliminan, pues es
+# En esta tabla, dado que hay valores vacíos (NaN) se eliminan, pues es
 # complicado trabajar con ellos
 horario = pd.read_csv('horarios24_2.csv', encoding='latin-1')
 # Se puede rellenar con cualquier valor para que sea sencillo después trabajar
@@ -34,22 +35,22 @@ profesores = horario['Profesor'].unique().tolist()
 
 # TODO: Usando la lista profesores se puede rellenar un control para seleccionar
 #       por ejemplo
+print("--PROFESORES--")
 print(profesores)
 
 #%%
 # Por ejemplo para obtener los grupos que lleva un profesor en particular
 # Se usa de la tabla 'horario' se busca donde el valor de la columna 'Profesor' sea igual
 # a algún valor
-seleccion = horario[horario['Profesor'] == 'HERNANDEZ QUINTANAR LUIS FELIPE DE JESUS']
+seleccion = horario[horario['Profesor'] == 'OLIVA MORENO LUZ NOE']
 # Mostrar el horario del profesor seleccionado
+print("--HORARIO--")
 print(seleccion.to_string())
 
-# TODO: Con esto es posible revisar ya una hora específica para saber ubicación
-
+# TODO: Agregar una hora en específico para conocer disponibilidad de salón
 # Revisar que salones están vacíos en la hora actual
 # Generar una lista con los valores de los días de la semana en columnas
 colSem = horario.columns[5:10].tolist()
-#print( horario[colSem[int(diaSemActual)]].tolist() )
 # Recorrer todos los horarios
 vac = []
 for j, dd in enumerate(horario[colSem[int(diaSemActual)]]):
@@ -70,5 +71,12 @@ for j, dd in enumerate(horario[colSem[int(diaSemActual)]]):
     # en otro caso
     else:
         vac.append(j)
-# Mostrar losalones vacíos en esa hora
+# Mostrar los salones vacíos en esa hora
+print("--SALONES VACÍOS--")
 print( (horario.loc[vac, 'Salón'].unique().tolist()) )
+
+
+# En otro caso, colocar un salón y buscar que horarios está ocupado
+salon = horario[horario['Salón'] == '517']
+print("--OCUPABILIDAD SALÓN--")
+print(salon.to_string())
